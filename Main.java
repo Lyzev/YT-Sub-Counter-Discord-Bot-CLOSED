@@ -10,6 +10,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Scanner;
 
@@ -33,7 +34,7 @@ public class Main {
         }));
         DefaultShardManagerBuilder builder = new DefaultShardManagerBuilder();
 
-        builder.setToken(paste here your token);
+        builder.setToken(paste ur token here);
         builder.setActivity(Activity.playing("Bot is starting..."));
         builder.setStatus(OnlineStatus.ONLINE);
 
@@ -80,39 +81,34 @@ public class Main {
 
     public void counter() {
         String abos = "0";
+        URL url = null;
+        try {
+            url = new URL("https://www.youtube.com/channel/UCUoGGhbzgJKLCOk89S5ztcw");
+        } catch (MalformedURLException e) {
+            e.printStackTrace();
+        }
         try {
             while (true) {
                 try {
 
-                    URL url = new URL("https://www.youtube.com/channel/UCUoGGhbzgJKLCOk89S5ztcw");
-                    try {
-                        Thread.sleep(500);
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
+                    Thread.sleep(1000);
+
                     InputStream in = url.openStream();
-                    try {
-                        Thread.sleep(500);
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
+
+                    Thread.sleep(1000);
+
                     Scanner scan = new Scanner(in);
-                    try {
-                        Thread.sleep(500);
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
+
+                    Thread.sleep(1000);
 
                     while (scan.hasNext()) {
-                        try {
-                            Thread.sleep(5);
-                        } catch (InterruptedException e) {
-                            e.printStackTrace();
-                        }
+
+                        Thread.sleep(50);
+
                         String str = scan.nextLine();
                         if (str.contains("Abonnenten")) {
                             String[] counter = str.split(" ");
-                            if (counter[23].substring(1865) != null && counter[23] != null && counter[23].substring(1865).matches("[0-9]+")) {
+                            if (counter[23].substring(1865).matches("[0-9]+")) {
                                 if (!counter[23].substring(1865).matches(abos)) {
                                     Main.INSTANCE.getShardMan().setActivity(Activity.playing("Lyzev Counter: " + counter[23].substring(1865) + " | YT: www.youtube.com/channel/UCUoGGhbzgJKLCOk89S5ztcw"));
                                     abos = counter[23].substring(1865);
@@ -122,16 +118,13 @@ public class Main {
                     }
                     scan.close();
 
-                } catch (IOException ignored) {
-                }
-                try {
-                    Thread.sleep(20000);
-                } catch (InterruptedException e) {
+                } catch (IOException e) {
                     e.printStackTrace();
                 }
+                Thread.sleep(20000);
             }
-        } catch (Exception e) {
-            e.printStackTrace();
+        } catch (InterruptedException s) {
+            s.printStackTrace();
         }
     }
 
