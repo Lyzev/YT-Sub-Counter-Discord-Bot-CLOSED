@@ -10,7 +10,6 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Scanner;
 
@@ -19,7 +18,31 @@ public class Main {
 
     public static Main INSTANCE;
 
-public ShardManager shardMan;
+    public ShardManager shardMan;
+    public boolean shutdown = false;
+
+    public Main() throws LoginException, IllegalArgumentException {
+        INSTANCE = this;
+
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+            Main.INSTANCE.getShardMan().setStatus(OnlineStatus.OFFLINE);
+            try {
+                Thread.sleep(1000);
+            } catch (InterruptedException ignored) {
+            }
+        }));
+        DefaultShardManagerBuilder builder = new DefaultShardManagerBuilder();
+
+        builder.setToken(paste here your token);
+        builder.setActivity(Activity.playing("Bot is starting..."));
+        builder.setStatus(OnlineStatus.ONLINE);
+
+        shardMan = builder.build();
+
+        System.out.println("Bot online.");
+        shutdown();
+    }
+
     public static void main(String[] args) {
 
         try {
@@ -28,30 +51,7 @@ public ShardManager shardMan;
             e.printStackTrace();
         }
     }
-public Main() throws LoginException, IllegalArgumentException {
-    INSTANCE = this;
 
-    Runtime.getRuntime().addShutdownHook(new Thread() {
-        @Override
-        public void run() {
-            Main.INSTANCE.getShardMan().setStatus(OnlineStatus.OFFLINE);
-            try {
-                Thread.sleep(1000);
-            } catch (InterruptedException ignored) {
-            }
-        }
-    });
-    DefaultShardManagerBuilder builder = new DefaultShardManagerBuilder();
-
-    builder.setToken("CENSORED");
-    builder.setActivity(Activity.playing("Bot is starting..."));
-    builder.setStatus(OnlineStatus.ONLINE);
-
-    shardMan = builder.build();
-
-    System.out.println("Bot online.");
-    shutdown();
-}
     public void shutdown() {
 
         new Thread(() -> {
@@ -59,11 +59,11 @@ public Main() throws LoginException, IllegalArgumentException {
             String line;
             BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
             try {
-                while((line = reader.readLine()) != null) {
+                while ((line = reader.readLine()) != null) {
 
-                    if(line.equalsIgnoreCase("exit")) {
-                        shutdown=true;
-                        if(shardMan != null) {
+                    if (line.equalsIgnoreCase("exit")) {
+                        shutdown = true;
+                        if (shardMan != null) {
                             shardMan.shutdown();
 
 
@@ -71,7 +71,7 @@ public Main() throws LoginException, IllegalArgumentException {
                         }
                     }
                 }
-            }catch (IOException e) {
+            } catch (IOException e) {
                 e.printStackTrace();
             }
         }).start();
@@ -80,10 +80,8 @@ public Main() throws LoginException, IllegalArgumentException {
 
     public void counter() {
         String abos = "0";
-        System.out.println("Thread startet");
         try {
-            while(true) {
-                System.out.println("While läuft");
+            while (true) {
                 try {
 
                     URL url = new URL("https://www.youtube.com/channel/UCUoGGhbzgJKLCOk89S5ztcw");
@@ -112,32 +110,32 @@ public Main() throws LoginException, IllegalArgumentException {
                             e.printStackTrace();
                         }
                         String str = scan.nextLine();
-                        if(str.contains("Abonnenten")) {
+                        if (str.contains("Abonnenten")) {
                             String[] counter = str.split(" ");
-                            if(counter[23].substring(1865) != null && counter[23] != null && counter[23].substring(1865).matches("[0-9]+")) {
+                            if (counter[23].substring(1865) != null && counter[23] != null && counter[23].substring(1865).matches("[0-9]+")) {
                                 if (!counter[23].substring(1865).matches(abos)) {
                                     Main.INSTANCE.getShardMan().setActivity(Activity.playing("Lyzev Counter: " + counter[23].substring(1865) + " | YT: www.youtube.com/channel/UCUoGGhbzgJKLCOk89S5ztcw"));
                                     abos = counter[23].substring(1865);
-                                    System.out.println("Counter Update");
                                 }
                             }
                         }
                     }
-                scan.close();
+                    scan.close();
 
                 } catch (IOException ignored) {
                 }
                 try {
-                    Thread.sleep(15000);
+                    Thread.sleep(20000);
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
             }
-        }catch (Exception e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
-    public ShardManager getShardMan() {return shardMan;}
-    public boolean shutdown = false;
+    public ShardManager getShardMan() {
+        return shardMan;
+    }
 }
