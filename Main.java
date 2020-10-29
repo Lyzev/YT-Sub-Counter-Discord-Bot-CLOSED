@@ -1,14 +1,19 @@
 package de.lyzev;
 
+import net.dv8tion.jda.api.JDA;
+import net.dv8tion.jda.api.JDABuilder;
 import net.dv8tion.jda.api.OnlineStatus;
 import net.dv8tion.jda.api.entities.Activity;
-import net.dv8tion.jda.api.sharding.DefaultShardManagerBuilder;
-import net.dv8tion.jda.api.sharding.ShardManager;
+import net.dv8tion.jda.api.requests.GatewayIntent;
+import net.dv8tion.jda.api.utils.MemberCachePolicy;
+import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
+import org.json.simple.parser.ParseException;
 
 import javax.security.auth.login.LoginException;
 import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -19,26 +24,38 @@ public class Main {
 
     public static Main INSTANCE;
 
-    public ShardManager shardMan;
+    public JDA shardMan;
     public boolean shutdown = false;
+    
+    private static String token = "YOUR DISCORD BOT TOKEN";
+    private static String ytApiToken = "YOUR YouTube Data API (v3) TOKEN";
+    private static String channelid = "CHANNEL ID OF THE YT-CHANNEL";
 
     public Main() throws LoginException, IllegalArgumentException {
         INSTANCE = this;
 
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-            Main.INSTANCE.getShardMan().setStatus(OnlineStatus.OFFLINE);
+            Main.INSTANCE.getJDA().getPresence().setStatus(OnlineStatus.OFFLINE);
             try {
                 Thread.sleep(1000);
             } catch (InterruptedException ignored) {
             }
         }));
-        DefaultShardManagerBuilder builder = new DefaultShardManagerBuilder();
 
-        builder.setToken(paste ur token here);
+        JDABuilder builder = JDABuilder.createLight(token, GatewayIntent.GUILD_MESSAGES, GatewayIntent.GUILD_MEMBERS, GatewayIntent.GUILD_PRESENCES, GatewayIntent.GUILD_BANS, GatewayIntent.DIRECT_MESSAGE_REACTIONS, GatewayIntent.GUILD_INVITES);
+
+        builder.setMemberCachePolicy(MemberCachePolicy.ALL);
+
         builder.setActivity(Activity.playing("Bot is starting..."));
         builder.setStatus(OnlineStatus.ONLINE);
 
-        shardMan = builder.build();
+        JDA jda = builder.build();
+        try {
+            Thread.sleep(5000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        shardMan = jda;
 
         System.out.println("Bot online.");
         shutdown();
@@ -80,55 +97,50 @@ public class Main {
     }
 
     public void counter() {
-        String abos = "0";
+
         URL url = null;
+
+        String subs = "0";
+
         try {
-            url = new URL("https://www.youtube.com/channel/UCUoGGhbzgJKLCOk89S5ztcw");
+            url = new URL("https://www.googleapis.com/youtube/v3/channels?part=statistics&id=" + channelid + "&key=" + ytApiToken);
         } catch (MalformedURLException e) {
             e.printStackTrace();
         }
         try {
             while (true) {
-                try {
 
-                    Thread.sleep(1000);
+                Scanner scanner = new Scanner(url.openStream());
 
-                    InputStream in = url.openStream();
+                StringBuilder sb = new StringBuilder();
 
-                    Thread.sleep(1000);
-
-                    Scanner scan = new Scanner(in);
-
-                    Thread.sleep(1000);
-
-                    while (scan.hasNext()) {
-
-                        Thread.sleep(50);
-
-                        String str = scan.nextLine();
-                        if (str.contains("Abonnenten")) {
-                            String[] counter = str.split(" ");
-                            if (counter[23].substring(1865).matches("[0-9]+")) {
-                                if (!counter[23].substring(1865).matches(abos)) {
-                                    Main.INSTANCE.getShardMan().setActivity(Activity.playing("Lyzev Counter: " + counter[23].substring(1865) + " | YT: www.youtube.com/channel/UCUoGGhbzgJKLCOk89S5ztcw"));
-                                    abos = counter[23].substring(1865);
-                                }
-                            }
-                        }
-                    }
-                    scan.close();
-
-                } catch (IOException e) {
-                    e.printStackTrace();
+                while (scanner.hasNext()) {
+                    sb.append(scanner.next());
                 }
-                Thread.sleep(20000);
+
+                JSONObject root = (JSONObject) new JSONParser().parse(sb.toString());
+
+                JSONArray items = (JSONArray) root.get("items");
+
+                JSONObject item = (JSONObject) items.get(0);
+
+                JSONObject statistics = (JSONObject) item.get("statistics");
+
+                String subscriberCount = (String) statistics.get("subscriberCount");
+
+                if (!subs.equals(subscriberCount)) {
+                    shardMan.getPresence().setActivity(Activity.playing(subscriberCount + " | Subscriber-Counter"));
+                    subs = subscriberCount;
+                }
+
+                Thread.sleep(60000);
             }
-        } catch (InterruptedException s) {
+        } catch (InterruptedException | IOException | ParseException s) {
             s.printStackTrace();
         }
     }
 
-    public ShardManager getShardMan() {
+    public JDA getJDA() {
         return shardMan;
     }
 }
