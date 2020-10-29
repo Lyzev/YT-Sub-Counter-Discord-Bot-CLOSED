@@ -1,5 +1,5 @@
 # YT Sub Counter - Discord-Bot
-This bot counts my YT-Subs in his status!
-This is just Source Code. You can´t use it for yourself, because the code is matched with my yt account. But if you are interested in doing anything similliar, just take a look!
+This bot counts the subs of a yt channel!
+You just need: Discord Bot Token, YouTube Data API (v3) Token and a YouTube channel id!
 Bye,
 Lyzev!
